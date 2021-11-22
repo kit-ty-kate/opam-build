@@ -42,6 +42,15 @@ let check_dependencies st dirname =
   else
     st
 
+let add_post_to_variables st =
+  let switch_config = st.OpamStateTypes.switch_config in
+  let switch_config =
+    let variables = switch_config.OpamFile.Switch_config.variables in
+    let variables = (OpamVariable.of_string "post", OpamVariable.B true) :: variables in
+    {switch_config with OpamFile.Switch_config.variables}
+  in
+  {st with OpamStateTypes.switch_config}
+
 let rec iter_job = function
   | OpamProcess.Job.Op.Done _ -> ()
   | Run (cmd, k) ->
@@ -58,6 +67,7 @@ let build ~with_test ~dirname =
   OpamSwitchState.with_ `Lock_write gt @@ fun st ->
   let st = check_switch gt st dirname in
   let st = check_dependencies st dirname in
+  let st = if with_test then add_post_to_variables st else st in
   OpamAuxCommands.opams_of_dir dirname |>
   List.map get_pkg |>
   List.iter (fun package ->
