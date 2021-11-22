@@ -6,7 +6,7 @@ let ( $ ) = Cmdliner.Term.( $ )
 let ( & ) = Cmdliner.Arg.( & )
 
 let main dirname =
-  Build_test_common.build ~with_test:false ~dirname;
+  Build_test_common.build ~with_test:true ~dirname;
   `Ok ()
 
 let dirname =
@@ -21,7 +21,7 @@ let cmd =
   let exits = Term.default_exits in
   let man = [] in (* TODO *)
   Term.ret (Term.const main $ dirname),
-  Term.info "opam-build" ~version:Opam_build_config.version ~doc ~sdocs ~exits ~man
+  Term.info "opam-build" ~version:Opam_test_config.version ~doc ~sdocs ~exits ~man
 
 let () =
   Term.exit @@ match Term.eval cmd with

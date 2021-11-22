@@ -19,7 +19,7 @@ let create_switch gt dirname =
       let st =
         OpamSwitchCommand.install_compiler st
           ~additional_installs
-          ~deps_only: true
+          ~deps_only:true
           ~ask:false (* TODO *)
       in
       ((), st)
@@ -49,11 +49,11 @@ let rec iter_job = function
       let result = OpamProcess.run cmd in
       iter_job (k result)
 
-let build ~dirname =
+let build ~with_test ~dirname =
   OpamStd.Option.iter Sys.chdir dirname;
   let dirname = OpamFilename.cwd () in
   (* TODO: Disable sandbox by default? Make it configurable? *)
-  OpamClientConfig.opam_init ();
+  OpamClientConfig.opam_init ~build_test:with_test ();
   OpamGlobalState.with_ `Lock_write @@ fun gt ->
   OpamSwitchState.with_ `Lock_write gt @@ fun st ->
   let st = check_switch gt st dirname in
@@ -61,7 +61,7 @@ let build ~dirname =
   OpamAuxCommands.opams_of_dir dirname |>
   List.map get_pkg |>
   List.iter (fun package ->
-    let job = OpamAction.build_package st ~test:false ~doc:false dirname package in
+    let job = OpamAction.build_package st ~test:with_test ~doc:false dirname package in
     print_endline ("Building "^OpamPackage.to_string package^"...");
     iter_job job
   )

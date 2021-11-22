@@ -1,0 +1,16 @@
+opam-version: "2.0"
+synopsis: "An opam plugin to build projects"
+maintainer: "Kate <kit.ty.kate@disroot.org>"
+authors: "Kate <kit.ty.kate@disroot.org>"
+license: "MIT"
+homepage: "https://github.com/kit-ty-kate/opam-build"
+bug-reports: "https://github.com/kit-ty-kate/opam-build/issues"
+dev-repo: "git+https://github.com/kit-ty-kate/opam-build.git"
+flags: plugin
+build: ["dune" "build" "-p" name "-j" jobs]
+depends: [
+  "ocaml" {>= "4.02"}
+  "dune" {>= "2.0"}
+  "opam-client" {>= "2.1"}
+  "cmdliner" {>= "1.0"}
+]

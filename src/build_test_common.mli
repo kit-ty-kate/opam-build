@@ -1,1 +1,1 @@
-val build : dirname:string option -> unit
+val build : with_test:bool -> dirname:string option -> unit
