@@ -1,1 +1,1 @@
-val build : OpamFilename.Dir.t -> unit
+val build : dirname:string option -> unit

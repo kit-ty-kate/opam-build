@@ -6,11 +6,7 @@ let ( $ ) = Cmdliner.Term.( $ )
 let ( & ) = Cmdliner.Arg.( & )
 
 let main dirname =
-  let dirname = match dirname with
-    | None -> "."
-    | Some dirname -> dirname
-  in
-  Build_test_common.build (OpamFilename.Dir.of_string dirname);
+  Build_test_common.build ~dirname;
   `Ok ()
 
 let dirname =
