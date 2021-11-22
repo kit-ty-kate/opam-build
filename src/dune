@@ -1,4 +1,17 @@
-(executable
- (name main)
- (public_name opam-build)
+(library
+ (name build_test_common)
+ (modules build_test_common)
  (libraries unix opam-client))
+
+(executable
+ (name opam_build)
+ (public_name opam-build)
+ (modules opam_build opam_build_config)
+ (libraries build_test_common cmdliner))
+
+(rule
+ (target opam_build_config.ml)
+ (action
+  (with-stdout-to %{target}
+   (progn
+    (echo "let version = {|%{version:opam-build}|}\n")))))

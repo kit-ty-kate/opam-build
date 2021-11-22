@@ -1,13 +1,3 @@
-(* taken from tests/reftests/run.ml (opam) *)
-(* TODO: Expose OpamProcess.waitpid (safe_wait) *)
-let rec waitpid pid =
-  match Unix.waitpid [] pid with
-  | exception Unix.Unix_error (Unix.EINTR,_,_) -> waitpid pid
-  | exception Unix.Unix_error (Unix.ECHILD,_,_) -> 256
-  | _, Unix.WSTOPPED _ -> waitpid pid
-  | _, Unix.WEXITED n -> n
-  | _, Unix.WSIGNALED _ -> failwith "signal"
-
 let get_pkg (name, opam, _) =
   let opam = OpamFile.OPAM.read opam in
   let version = match OpamFile.OPAM.version_opt opam with
@@ -33,9 +23,7 @@ let rec iter_job = function
       let result = OpamProcess.run cmd in
       iter_job (k result)
 
-let () =
-  (* TODO: Pass it as parameter? *)
-  let dirname = OpamFilename.Dir.of_string "." in
+let build dirname =
   (* TODO: Disable sandbox by default? Make it configurable? *)
   OpamClientConfig.opam_init ();
   OpamGlobalState.with_ `Lock_none @@ fun gt ->
