@@ -1,3 +1,5 @@
+(* SPDX-License-Identifier: MIT *)
+
 module Term = Cmdliner.Term
 module Arg = Cmdliner.Arg
 module Manpage = Cmdliner.Manpage

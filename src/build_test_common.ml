@@ -1,3 +1,5 @@
+(* SPDX-License-Identifier: MIT *)
+
 let get_pkg (name, opam, _) =
   let opam = OpamFile.OPAM.read opam in
   let version = match OpamFile.OPAM.version_opt opam with
