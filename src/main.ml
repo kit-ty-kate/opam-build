@@ -22,9 +22,9 @@ let check_dependencies st dirname =
   in
   let missing = OpamClient.check_installed ~build:true ~post:true st atoms in
   if not (OpamPackage.Map.is_empty missing) then
-    (* TODO: do the thing instead of telling the user to do it *)
-    OpamConsole.error_and_exit `Bad_arguments "Dependencies are missing. Hint: opam install --deps-only .";
-  st
+    OpamClient.install st ~deps_only:true atoms
+  else
+    st
 
 let rec iter_job = function
   | OpamProcess.Job.Op.Done _ -> ()
