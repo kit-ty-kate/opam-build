@@ -28,11 +28,11 @@ let create_switch gt dirname =
   in
   st
 
-let check_switch gt st dirname =
+let check_switch gt dirname k =
   match OpamStateConfig.get_current_switch_from_cwd gt.OpamStateTypes.root with
-  | None -> create_switch gt dirname (* TODO: Ask the user if they want to create a local
-                                        or leave them with global switch *)
-  | Some _ -> st
+  | None -> k (create_switch gt dirname) (* TODO: Ask the user if they want to create a local
+                                            or leave them with global switch *)
+  | Some _ -> OpamSwitchState.with_ `Lock_write gt k
 
 let check_dependencies st dirname =
   let st, atoms =
@@ -66,8 +66,7 @@ let build ~with_test ~dirname =
   (* TODO: Disable sandbox by default? Make it configurable? *)
   OpamClientConfig.opam_init ~build_test:with_test ();
   OpamGlobalState.with_ `Lock_write @@ fun gt ->
-  OpamSwitchState.with_ `Lock_write gt @@ fun st ->
-  let st = check_switch gt st dirname in
+  check_switch gt dirname @@ fun st ->
   let st = check_dependencies st dirname in
   let st = if with_test then add_post_to_variables st else st in
   OpamAuxCommands.opams_of_dir dirname |>
