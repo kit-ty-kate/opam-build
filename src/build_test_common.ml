@@ -34,15 +34,18 @@ let check_switch gt dirname k =
                                             or leave them with global switch *)
   | Some _ -> OpamSwitchState.with_ `Lock_write gt k
 
-let check_dependencies st dirname =
+let check_dependencies ~upgrade st dirname =
   let st, atoms =
     OpamAuxCommands.simulate_autopin st ~recurse:false ~quiet:true [`Dirname dirname]
   in
-  let missing = OpamClient.check_installed ~build:true ~post:true st atoms in
-  if not (OpamPackage.Map.is_empty missing) then
+  if upgrade then
     OpamClient.install st ~deps_only:true atoms
   else
-    st
+    let missing = OpamClient.check_installed ~build:true ~post:true st atoms in
+    if not (OpamPackage.Map.is_empty missing) then
+      OpamClient.install st ~deps_only:true atoms
+    else
+      st
 
 let add_post_to_variables st =
   let switch_config = st.OpamStateTypes.switch_config in
@@ -60,14 +63,16 @@ let rec iter_job = function
       let result = OpamProcess.run cmd in
       iter_job (k result)
 
-let build ~with_test ~dirname =
+let build ~upgrade ~lower_bounds ~with_test ~dirname =
   OpamStd.Option.iter Sys.chdir dirname;
   let dirname = OpamFilename.cwd () in
+  let solver = if lower_bounds then Some (lazy (module OpamBuiltin0install : OpamCudfSolver.S)) else None in
+  let solver_preferences_default = if lower_bounds then Some (lazy (Some "+removed,+count[version-lag,solution]")) else None in
   (* TODO: Disable sandbox by default? Make it configurable? *)
-  OpamClientConfig.opam_init ~build_test:with_test ();
+  OpamClientConfig.opam_init ~build_test:with_test ?solver ?solver_preferences_default ();
   OpamGlobalState.with_ `Lock_write @@ fun gt ->
   check_switch gt dirname @@ fun st ->
-  let st = check_dependencies st dirname in
+  let st = check_dependencies ~upgrade st dirname in
   let st = if with_test then add_post_to_variables st else st in
   OpamAuxCommands.opams_of_dir dirname |>
   List.map get_pkg |>

@@ -8,7 +8,7 @@ let ( $ ) = Cmdliner.Term.( $ )
 let ( & ) = Cmdliner.Arg.( & )
 
 let main dirname =
-  Build_test_common.build ~with_test:false ~dirname;
+  Build_test_common.build ~upgrade:false ~lower_bounds:false ~with_test:false ~dirname;
   `Ok ()
 
 let dirname =
