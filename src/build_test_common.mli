@@ -1,3 +1,8 @@
 (* SPDX-License-Identifier: MIT *)
 
-val build : with_test:bool -> dirname:string option -> unit
+val build :
+  upgrade:bool ->
+  lower_bounds:bool ->
+  with_test:bool ->
+  dirname:string option ->
+  unit

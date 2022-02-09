@@ -13,6 +13,7 @@ depends: [
   "dune" {>= "2.0"}
   "opam-client" {>= "2.1.0" & < "2.2" & opam-version >= "2.1" & opam-version < "2.2"}
   "opam-client" {>= "2.2" & < "2.3" & opam-version >= "2.2" & opam-version < "2.3"}
+  "opam-0install-cudf" {>= "0.4"}
   "cmdliner" {>= "1.0"}
 ]
 available: opam-version >= "2.1" & opam-version < "2.3"
