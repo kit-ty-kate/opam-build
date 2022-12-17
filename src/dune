@@ -1,7 +1,8 @@
 (library
  (name build_test_common)
- (modules build_test_common)
- (libraries unix opam-client))
+ (modules build_test_common configfile common_cmdliner)
+ (libraries unix opam-client)
+ (wrapped false))
 
 (executable
  (name opam_build)

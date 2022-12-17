@@ -1,3 +1,9 @@
 (* SPDX-License-Identifier: MIT *)
 
-val build : with_test:bool -> dirname:string option -> unit
+type switch_kind = Local | Global
+
+val build :
+  switch_kind:switch_kind ->
+  with_test:bool ->
+  dirname:string option ->
+  unit

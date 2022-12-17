@@ -8,22 +8,16 @@ module Manpage = Cmdliner.Manpage
 let ( $ ) = Cmdliner.Term.( $ )
 let ( & ) = Cmdliner.Arg.( & )
 
-let main dirname =
-  Build_test_common.build ~with_test:true ~dirname;
+let main switch_kind dirname =
+  Build_test_common.build ~switch_kind ~with_test:true ~dirname;
   `Ok ()
-
-let dirname =
-  let doc = "" in (* TODO *)
-  Arg.value &
-  Arg.pos 0 (Arg.some Arg.dir) None &
-  Arg.info [] ~docv:"DIR" ~doc
 
 let cmd =
   let doc = "" in (* TODO *)
   let sdocs = Manpage.s_common_options in
   let exits = Cmd.Exit.defaults in
   let man = [] in (* TODO *)
-  let term = Term.ret (Term.const main $ dirname) in
+  let term = Term.ret (Common_cmdliner.args main) in
   let info = Cmd.info "opam-test" ~version:Opam_test_config.version ~doc ~sdocs ~exits ~man in
   Cmd.v info term
 
