@@ -2,6 +2,7 @@
 
 module Term = Cmdliner.Term
 module Arg = Cmdliner.Arg
+module Cmd = Cmdliner.Cmd
 module Manpage = Cmdliner.Manpage
 
 let ( $ ) = Cmdliner.Term.( $ )
@@ -20,12 +21,11 @@ let dirname =
 let cmd =
   let doc = "" in (* TODO *)
   let sdocs = Manpage.s_common_options in
-  let exits = Term.default_exits in
+  let exits = Cmd.Exit.defaults in
   let man = [] in (* TODO *)
-  Term.ret (Term.const main $ dirname),
-  Term.info "opam-build" ~version:Opam_build_config.version ~doc ~sdocs ~exits ~man
+  let term = Term.ret (Term.const main $ dirname) in
+  let info = Cmd.info "opam-build" ~version:Opam_build_config.version ~doc ~sdocs ~exits ~man in
+  Cmd.v info term
 
 let () =
-  Term.exit @@ match Term.eval cmd with
-  | `Ok () -> `Ok ()
-  | (`Error _ | `Version | `Help) as x -> x
+  exit (Cmd.eval cmd)
