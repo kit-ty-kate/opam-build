@@ -10,7 +10,7 @@ let ( & ) = Cmdliner.Arg.( & )
 
 let main switch_kind dirname =
   Build_test_common.build ~switch_kind ~with_test:false ~dirname;
-  `Ok ()
+  `Ok 0
 
 let cmd =
   let doc = "" in (* TODO *)
@@ -22,4 +22,4 @@ let cmd =
   Cmd.v info term
 
 let () =
-  exit (Cmd.eval cmd)
+  exit (Cmd.eval' cmd)

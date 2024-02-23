@@ -1,7 +1,7 @@
 (library
  (name build_test_common)
  (modules build_test_common configfile common_cmdliner)
- (libraries unix opam-client)
+ (libraries unix opam-client opam-format opam-file-format xdg)
  (wrapped false))
 
 (executable
