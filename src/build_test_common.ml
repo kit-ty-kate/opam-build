@@ -7,22 +7,23 @@ let get_pkg st OpamStateTypes.{pin_name = name; _} =
   OpamPackage.create name version
 
 let create_switch gt dirname =
+  print_endline "A local switch is being created...";
   OpamRepositoryState.with_ `Lock_none gt @@ fun rt ->
   let (), st =
     OpamSwitchCommand.create gt ~rt
       ~update_config:true
       ~invariant:OpamFormula.Empty
       (OpamSwitch.of_string ".") @@ fun st ->
-      let st, additional_installs =
-        OpamAuxCommands.simulate_autopin st ~recurse:false ~quiet:true [`Dirname dirname]
-      in
-      let st =
-        OpamSwitchCommand.install_compiler st
-          ~additional_installs
-          ~deps_only:true
-          ~ask:false (* TODO *)
-      in
-      ((), st)
+    let st, atoms =
+      OpamAuxCommands.simulate_autopin st ~recurse:false ~quiet:true [`Dirname dirname]
+    in
+    let st =
+      OpamClient.install_t st
+        ~ask:false (* TODO *)
+        atoms (Some true)
+        ~deps_only:true ~assume_built:false
+    in
+    ((), st)
   in
   st
 
