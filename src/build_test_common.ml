@@ -2,12 +2,8 @@
 
 type switch_kind = Local | Global
 
-let get_pkg OpamStateTypes.{pin_name = name; pin = {pin_file = opam; _}} =
-  let opam = OpamFile.OPAM.read opam in
-  let version = match OpamFile.OPAM.version_opt opam with
-    | Some v -> v
-    | None -> OpamPackage.Version.of_string "~dev"
-  in
+let get_pkg st OpamStateTypes.{pin_name = name; _} =
+  let version = OpamPinCommand.default_version st name in
   OpamPackage.create name version
 
 let create_switch gt dirname =
@@ -86,7 +82,7 @@ let build ~switch_kind ~with_test ~dirname =
   let st = if with_test then add_post_to_variables st else st in
   print_endline (OpamConsole.colorise `yellow ("# Using "^(match switch_kind with Local -> "local" | Global -> "global")^" switch"));
   OpamAuxCommands.opams_of_dir dirname |>
-  List.map get_pkg |>
+  List.map (get_pkg st) |>
   List.iter (fun package ->
     let job = OpamAction.build_package st ~test:with_test ~doc:false dirname package in
     print_newline ();
