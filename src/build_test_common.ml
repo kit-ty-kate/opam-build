@@ -73,20 +73,24 @@ let rec iter_job = function
       | exit_code -> print_endline (OpamConsole.colorise `yellow ("# exit-code: "^string_of_int exit_code))
 
 let build ~switch_kind ~with_test ~dirname =
-  OpamStd.Option.iter Sys.chdir dirname;
-  let dirname = OpamFilename.cwd () in
-  (* TODO: Disable sandbox by default? Make it configurable? *)
-  OpamClientConfig.opam_init ~build_test:with_test ();
-  OpamGlobalState.with_ `Lock_write @@ fun gt ->
-  check_switch ~switch_kind gt dirname @@ fun st ->
-  let st = check_dependencies st dirname in
-  let st = if with_test then add_post_to_variables st else st in
-  print_endline (OpamConsole.colorise `yellow ("# Using "^(match switch_kind with Local -> "local" | Global -> "global")^" switch"));
-  OpamAuxCommands.opams_of_dir dirname |>
-  List.map (get_pkg st) |>
-  List.iter (fun package ->
-    let job = OpamAction.build_package st ~test:with_test ~doc:false dirname package in
-    print_newline ();
-    print_endline (OpamConsole.colorise `yellow ("# Building "^OpamPackage.to_string package^"..."));
-    iter_job job
-  )
+  try
+    OpamStd.Option.iter Sys.chdir dirname;
+    let dirname = OpamFilename.cwd () in
+    (* TODO: Disable sandbox by default? Make it configurable? *)
+    OpamClientConfig.opam_init ~build_test:with_test ();
+    OpamGlobalState.with_ `Lock_write @@ fun gt ->
+    check_switch ~switch_kind gt dirname @@ fun st ->
+    let st = check_dependencies st dirname in
+    let st = if with_test then add_post_to_variables st else st in
+    print_endline (OpamConsole.colorise `yellow ("# Using "^(match switch_kind with Local -> "local" | Global -> "global")^" switch"));
+    OpamAuxCommands.opams_of_dir dirname |>
+    List.map (get_pkg st) |>
+    List.iter (fun package ->
+      let job = OpamAction.build_package st ~test:with_test ~doc:false dirname package in
+      print_newline ();
+      print_endline (OpamConsole.colorise `yellow ("# Building "^OpamPackage.to_string package^"..."));
+      iter_job job
+    )
+  with
+  | OpamStd.Sys.Exit 0 -> ()
+  | OpamStd.Sys.Exit n -> exit n
