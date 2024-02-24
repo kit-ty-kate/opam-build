@@ -84,6 +84,7 @@ let build ~switch_kind ~with_test ~dirname =
   check_switch ~switch_kind gt dirname @@ fun st ->
   let st = check_dependencies st dirname in
   let st = if with_test then add_post_to_variables st else st in
+  print_endline (OpamConsole.colorise `yellow ("# Using "^(match switch_kind with Local -> "local" | Global -> "global")^" switch"));
   OpamAuxCommands.opams_of_dir dirname |>
   List.map get_pkg |>
   List.iter (fun package ->
