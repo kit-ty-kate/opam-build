@@ -27,14 +27,8 @@ let write_config_only =
   let doc = "" in (* TODO *)
   Arg.value & Arg.flag & Arg.info ["write-config-only"] ~doc
 
-let dirname =
-  let doc = "" in (* TODO *)
-  Arg.value &
-  Arg.pos 0 (Arg.some Arg.dir) None &
-  Arg.info [] ~docv:"DIR" ~doc
-
 let args f =
-  let f switch_kind write_config_only dirname =
+  let f switch_kind write_config_only =
     if write_config_only then begin
       Stdlib.Option.iter Configfile.set_switch_kind switch_kind;
       `Ok 0
@@ -60,7 +54,7 @@ let args f =
                   None
       in
       match switch_kind with
-      | Some switch_kind -> f switch_kind dirname
+      | Some switch_kind -> f switch_kind
       | None -> `Ok 1
   in
-  Term.const f $ switch_kind $ write_config_only $ dirname
+  Term.const f $ switch_kind $ write_config_only
