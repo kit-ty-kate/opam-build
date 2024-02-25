@@ -1,3 +1,16 @@
+v0.2.0 (25/02/2024)
+-------------------
+
+- Upgrade to opam 2.2
+- Upgrade to cmdliner 1.1
+- Improve performance
+- Add a new --global and --local command line argument to signify whether to use a local switch or a global switch
+- Add a new config file storing the user preference and which kind of switch to use by default
+- Remove the command line directory argument
+- Fix building unreleased packages in local mode
+- Do not show the "No invariant was set..." warning when creating a local switch
+- Document the tools and command line arguments in --help
+
 v0.1.0 (22/11/2021)
 -------------------
 
