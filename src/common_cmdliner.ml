@@ -10,11 +10,18 @@ let ( & ) = Cmdliner.Arg.( & )
 
 let switch_kind =
   let local =
-    let doc = "" in (* TODO *)
+    let doc =
+      "Enforce to use a local switch to build the project in \
+       the current directory. This is the default"
+    in
     Arg.info ["local"] ~doc
   in
   let global =
-    let doc = "" in (* TODO *)
+    let doc =
+      "Enforce to use the currently set global switch to build \
+       the project in the current directory. \
+       See $(b,--write-config-only) to set this behaviour to be the default."
+    in
     Arg.info ["global"] ~doc
   in
   Arg.value &
@@ -24,7 +31,12 @@ let switch_kind =
   ]
 
 let write_config_only =
-  let doc = "" in (* TODO *)
+  let doc =
+    "Writes to the configuration file with the values of \
+     the other arguments if applicable, then exits. \
+     For example, $(b,--write-config-only --global) will \
+     set the mode to be global by default."
+  in
   Arg.value & Arg.flag & Arg.info ["write-config-only"] ~doc
 
 let args f =
