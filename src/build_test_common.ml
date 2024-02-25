@@ -2,6 +2,8 @@
 
 type switch_kind = Local | Global
 
+exception No_switch
+
 let dev_version = OpamPackage.Version.of_string "dev"
 
 let add_pkg map OpamStateTypes.{pin_name = name; pin = {pin_file; _}} =
@@ -62,7 +64,7 @@ let check_switch ~pkgs ~switch_kind gt k =
       end
   | Global ->
       begin match OpamFile.Config.switch gt.OpamStateTypes.config with
-      | None -> failwith "TODO"
+      | None -> raise No_switch
       | Some switch when OpamSwitch.is_external switch -> assert false
       | Some switch -> OpamSwitchState.with_ `Lock_write ~switch gt k
       end
@@ -118,3 +120,6 @@ let build ~switch_kind ~with_test =
   with
   | OpamStd.Sys.Exit 0 -> ()
   | OpamStd.Sys.Exit n -> exit n
+  | No_switch ->
+      prerr_endline "Error: no switch is currently set by opam. Please set a global switch first.";
+      exit 1
