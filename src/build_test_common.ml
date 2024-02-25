@@ -61,9 +61,9 @@ let check_switch ~pkgs ~switch_kind gt k =
       | Some switch -> OpamSwitchState.with_ `Lock_write ~switch gt k
       end
   | Global ->
-      begin match (!OpamStateConfig.r).current_switch with
+      begin match OpamFile.Config.switch gt.OpamStateTypes.config with
       | None -> failwith "TODO"
-      | Some switch when OpamSwitch.is_external switch -> failwith "TODO"
+      | Some switch when OpamSwitch.is_external switch -> assert false
       | Some switch -> OpamSwitchState.with_ `Lock_write ~switch gt k
       end
 
