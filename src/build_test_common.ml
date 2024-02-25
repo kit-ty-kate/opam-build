@@ -4,37 +4,34 @@ type switch_kind = Local | Global
 
 let dev_version = OpamPackage.Version.of_string "dev"
 
-let get_pkg OpamStateTypes.{pin_name = name; _} =
-  OpamPackage.create name dev_version
+let add_pkg map OpamStateTypes.{pin_name = name; pin = {pin_file; _}} =
+  let pkg = OpamPackage.create name dev_version in
+  let opam = OpamFile.OPAM.safe_read pin_file in
+  let opam = OpamFile.OPAM.with_name name opam in
+  let opam = OpamFile.OPAM.with_version dev_version opam in
+  OpamPackage.Map.add pkg opam map
 
 let get_pkgs () =
-  List.map get_pkg (OpamAuxCommands.opams_of_dir (OpamFilename.cwd ()))
+  List.fold_left
+    add_pkg
+    OpamPackage.Map.empty
+    (OpamAuxCommands.opams_of_dir (OpamFilename.cwd ()))
 
-(* TODO: Temporary code while https://github.com/ocaml/opam/issues/5855 gets fixed *)
-(* TODO: but maybe we actually want those packages to be pinned in local mode
-   e.g. what happens if the pins are simulated and users do opam upgrade? *)
-let local_nonsimulated_pin ~pkgs st =
+let pkg_to_atom (pkg, _opam) =
+  let name = OpamPackage.name pkg in
+  let version = dev_version in
+  (name, Some (`Eq, version))
+
+let pkgs_to_atoms pkgs =
+  List.map pkg_to_atom (OpamPackage.Map.to_list pkgs)
+
+let autopin ~simulate ~pkgs st =
   let st =
-    OpamCoreConfig.update ~yes:(Some true) (); (* TODO: do better *)
-    List.fold_left (fun st pkg ->
-      let name = OpamPackage.name pkg in
-      (* TODO: make it non-verbose *)
-      OpamPinCommand.source_pin st name
-        ~edit:false
-        ~version:dev_version
-        ~quiet:true
-        (Some (OpamUrl.of_string "."))
-    ) st pkgs
+    OpamPackage.Map.fold OpamSwitchState.update_pin pkgs st
   in
-  OpamCoreConfig.update ~yes:None ();
-  let atoms =
-    OpamPackage.Set.fold (fun pkg acc ->
-      let name = OpamPackage.name pkg in
-      let version = OpamPackage.version pkg in
-      (name, Some (`Eq, version)) :: acc
-    ) st.OpamStateTypes.pinned []
-  in
-  (st, atoms)
+  if simulate then
+    OpamSwitchAction.write_selections st;
+  st
 
 let create_switch ~pkgs gt =
   print_endline "A local switch is being created...";
@@ -44,7 +41,8 @@ let create_switch ~pkgs gt =
       ~update_config:true
       ~invariant:OpamFormula.Empty
       (OpamSwitch.of_string ".") @@ fun st ->
-    let st, atoms = local_nonsimulated_pin ~pkgs st in
+    let st = autopin ~simulate:true ~pkgs st in
+    let atoms = pkgs_to_atoms pkgs in
     let st =
       OpamClient.install_t st
         ~ask:false (* TODO *)
@@ -71,11 +69,8 @@ let check_switch ~pkgs ~switch_kind gt k =
 
 let check_dependencies ~pkgs ~switch_kind st =
   let st, atoms =
-    match switch_kind with
-    | Local ->
-        local_nonsimulated_pin ~pkgs st
-    | Global ->
-        OpamAuxCommands.simulate_autopin st ~recurse:false ~quiet:true [`Dirname (OpamFilename.cwd ())]
+    let simulate = match switch_kind with Local -> false | Global -> true in
+    (autopin ~simulate ~pkgs st, pkgs_to_atoms pkgs)
   in
   let missing = OpamClient.check_installed ~build:true ~post:true st atoms in
   if not (OpamPackage.Map.is_empty missing) then
@@ -114,7 +109,7 @@ let build ~switch_kind ~with_test =
     let st = check_dependencies ~pkgs ~switch_kind st in
     let st = if with_test then add_post_to_variables st else st in
     print_endline (OpamConsole.colorise `yellow ("# Using "^(match switch_kind with Local -> "local" | Global -> "global")^" switch"));
-    List.iter (fun package ->
+    OpamPackage.Map.iter (fun package _opam ->
       let job = OpamAction.build_package st ~test:with_test ~doc:false (OpamFilename.cwd ()) package in
       print_newline ();
       print_endline (OpamConsole.colorise `yellow ("# Building "^OpamPackage.to_string package^"..."));
