@@ -25,7 +25,7 @@ let pkg_to_atom (pkg, _opam) =
   (name, Some (`Eq, version))
 
 let pkgs_to_atoms pkgs =
-  List.map pkg_to_atom (OpamPackage.Map.to_list pkgs)
+  List.map pkg_to_atom (OpamPackage.Map.bindings pkgs)
 
 let autopin ~simulate ~pkgs st =
   let st =
