@@ -3,6 +3,8 @@ v0.2.0 (25/02/2024)
 
 - Upgrade to opam 2.2
 - Upgrade to cmdliner 1.1
+- Now requires the xdg library
+- Now requires OCaml >= 5.1
 - Improve performance
 - Add a new --global and --local command line argument to signify whether to use a local switch or a global switch
 - Add a new config file storing the user preference and which kind of switch to use by default
