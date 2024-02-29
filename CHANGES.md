@@ -1,3 +1,8 @@
+v0.2.2 (29/02/2024)
+-------------------
+
+- Fix flipped behaviour (pins should be done on local switches not global ones)
+
 v0.2.1 (26/02/2024)
 -------------------
 
