@@ -27,12 +27,12 @@ let pkg_to_atom (pkg, _opam) =
 let pkgs_to_atoms pkgs =
   List.map pkg_to_atom (OpamPackage.Map.bindings pkgs)
 
-let autopin ~simulate ~pkgs st =
-  let st =
-    OpamPackage.Map.fold OpamSwitchState.update_pin pkgs st
-  in
-  if simulate then
-    OpamSwitchAction.write_selections st;
+let simulate_autopin ~pkgs (st : OpamStateTypes.([< ro] switch_state)) =
+  OpamPackage.Map.fold OpamSwitchState.update_pin pkgs st
+
+let autopin ~pkgs (st : OpamStateTypes.([< rw] switch_state)) =
+  let st = simulate_autopin ~pkgs st in
+  OpamSwitchAction.write_selections st;
   st
 
 let create_switch ~pkgs gt =
@@ -43,7 +43,7 @@ let create_switch ~pkgs gt =
       ~update_config:true
       ~invariant:OpamFormula.Empty
       (OpamSwitch.of_string ".") @@ fun st ->
-    let st = autopin ~simulate:true ~pkgs st in
+    let st = simulate_autopin ~pkgs st in
     let atoms = pkgs_to_atoms pkgs in
     let st =
       OpamClient.install_t st
@@ -71,8 +71,11 @@ let check_switch ~pkgs ~switch_kind gt k =
 
 let check_dependencies ~pkgs ~switch_kind st =
   let st, atoms =
-    let simulate = match switch_kind with Local -> false | Global -> true in
-    (autopin ~simulate ~pkgs st, pkgs_to_atoms pkgs)
+    let st = match switch_kind with
+      | Local -> autopin ~pkgs st
+      | Global -> simulate_autopin ~pkgs st
+    in
+    (st, pkgs_to_atoms pkgs)
   in
   let missing = OpamClient.check_installed ~build:true ~post:true st atoms in
   if not (OpamPackage.Map.is_empty missing) then
