@@ -27,10 +27,10 @@ let pkg_to_atom (pkg, _opam) =
 let pkgs_to_atoms pkgs =
   List.map pkg_to_atom (OpamPackage.Map.bindings pkgs)
 
-let simulate_autopin ~pkgs (st : OpamStateTypes.([< ro] switch_state)) =
+let simulate_autopin ~pkgs (st : [< OpamStateTypes.ro] OpamStateTypes.switch_state) =
   OpamPackage.Map.fold OpamSwitchState.update_pin pkgs st
 
-let autopin ~pkgs (st : OpamStateTypes.([< rw] switch_state)) =
+let autopin ~pkgs (st : [< OpamStateTypes.rw] OpamStateTypes.switch_state) =
   let st = simulate_autopin ~pkgs st in
   OpamSwitchAction.write_selections st;
   st
