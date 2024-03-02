@@ -112,9 +112,23 @@ let is_special_shell_char = function
   | ';'|'!'|'&'|'|'|'~'|'*'|'?' -> true
   | _ -> false
 
+let has_special_shell_char str =
+  (* TODO: Use String.exists when we require OCaml >= 4.13 *)
+  let len = String.length str in
+  let rec aux i =
+    if (i : int) < len then
+      if is_special_shell_char str.[i] then
+        true
+      else
+        aux (i + 1)
+    else
+      false
+  in
+  aux 0
+
 let quote_command cmd args =
   let quote x =
-    if String.exists is_special_shell_char x then
+    if has_special_shell_char x then
       Filename.quote x
     else
       x
