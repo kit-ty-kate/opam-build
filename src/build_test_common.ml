@@ -92,17 +92,43 @@ let add_post_to_variables st =
   in
   {st with OpamStateTypes.switch_config}
 
+let dummy_result = {
+  OpamProcess.r_code = 0;
+  r_signal = None;
+  r_duration = 0.0;
+  r_info = [];
+  r_stdout = [];
+  r_stderr = [];
+  r_cleanup = [];
+}
+
+let global_env = Lazy.from_fun Unix.environment
+
+let print prefix str =
+  print_endline (OpamConsole.colorise `yellow prefix^" "^str)
+
+let switch_kind_to_string = function
+  | Local -> "local"
+  | Global -> "global"
+
 let rec iter_job = function
   | OpamProcess.Job.Op.Done _ -> ()
-  | Run (cmd, k) ->
-      print_newline ();
-      print_endline (OpamConsole.colorise `yellow ("# "^OpamProcess.string_of_command cmd));
-      print_newline ();
-      let result = OpamProcess.run cmd in
-      List.iter print_endline result.OpamProcess.r_stdout;
-      match result.OpamProcess.r_code with
-      | 0 -> iter_job (k result)
-      | exit_code -> print_endline (OpamConsole.colorise `yellow ("# exit-code: "^string_of_int exit_code))
+  | Run ({cmd; args; cmd_env; _} as opam_cmd, k) ->
+      print "###" (OpamConsole.colorise `bold (OpamProcess.string_of_command opam_cmd));
+      let args = Array.of_list (cmd::args) in
+      let env = match cmd_env with
+        | None -> Lazy.force global_env
+        | Some env -> env
+      in
+      let stdin = Unix.dup ~cloexec:true Unix.stdin in
+      let pid = Unix.create_process_env cmd args env stdin Unix.stdout Unix.stderr in
+      match Unix.waitpid [] pid with
+      | _pid, WEXITED 0 ->
+          iter_job (k dummy_result)
+      | _pid, WEXITED exit_code ->
+          print "###" (OpamConsole.colorise `red "exit-code"^": "^string_of_int exit_code)
+      | _pid, (WSIGNALED _ | WSTOPPED _) ->
+          print "###" (OpamConsole.colorise `red "command stopped unexpectedly")
 
 let build ~switch_kind ~with_test =
   try
@@ -113,11 +139,10 @@ let build ~switch_kind ~with_test =
     check_switch ~pkgs ~switch_kind gt @@ fun st ->
     let st = check_dependencies ~pkgs ~switch_kind st in
     let st = if with_test then add_post_to_variables st else st in
-    print_endline (OpamConsole.colorise `yellow ("# Using "^(match switch_kind with Local -> "local" | Global -> "global")^" switch"));
+    print "#" ("Using "^OpamConsole.colorise `bold (switch_kind_to_string switch_kind)^" switch");
     OpamPackage.Map.iter (fun package _opam ->
       let job = OpamAction.build_package st ~test:with_test ~doc:false (OpamFilename.cwd ()) package in
-      print_newline ();
-      print_endline (OpamConsole.colorise `yellow ("# Building "^OpamPackage.to_string package^"..."));
+      print "##" ("Building "^OpamConsole.colorise `blue (OpamPackage.to_string package)^"...");
       iter_job job
     ) pkgs
   with
