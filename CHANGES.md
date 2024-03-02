@@ -1,3 +1,10 @@
+v0.2.4 (02/03/2024)
+-------------------
+
+- Show the output of each commands called live
+- Quote the commands printed properly as required
+- Improve the UI
+
 v0.2.3 (29/02/2024)
 -------------------
 
