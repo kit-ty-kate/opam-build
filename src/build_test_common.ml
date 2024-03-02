@@ -109,7 +109,7 @@ let is_special_shell_char = function
   | '^'|'%' when Sys.win32 -> true
   | ' '|'$'|'\''|'"'|'`'
   | '<'|'>'|'('|')'|'['|']'|'{'|'}'
-  | ';'|'!'|'&'|'|'|'~'|'*'|'?' -> true
+  | ';'|'!'|'&'|'|'|'~'|'*'|'?'|'#' -> true
   | _ -> false
 
 let has_special_shell_char str =
