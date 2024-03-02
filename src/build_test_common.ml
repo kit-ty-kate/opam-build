@@ -104,6 +104,23 @@ let dummy_result = {
 
 let global_env = Lazy.from_fun Unix.environment
 
+let is_special_shell_char = function
+  | '\\' when not Sys.win32 -> true
+  | '^'|'%' when Sys.win32 -> true
+  | ' '|'$'|'\''|'"'|'`'
+  | '<'|'>'|'('|')'|'['|']'|'{'|'}'
+  | ';'|'!'|'&'|'|'|'~'|'*'|'?' -> true
+  | _ -> false
+
+let quote_command cmd args =
+  let quote x =
+    if String.exists is_special_shell_char x then
+      Filename.quote x
+    else
+      x
+  in
+  quote cmd^List.fold_left (fun acc x -> acc^" "^quote x) "" args
+
 let print prefix str =
   print_endline (OpamConsole.colorise `yellow prefix^" "^str)
 
@@ -113,8 +130,8 @@ let switch_kind_to_string = function
 
 let rec iter_job = function
   | OpamProcess.Job.Op.Done _ -> ()
-  | Run ({cmd; args; cmd_env; _} as opam_cmd, k) ->
-      print "###" (OpamConsole.colorise `bold (OpamProcess.string_of_command opam_cmd));
+  | Run ({cmd; args; cmd_env; _}, k) ->
+      print "###" (OpamConsole.colorise `bold (quote_command cmd args));
       let args = Array.of_list (cmd::args) in
       let env = match cmd_env with
         | None -> Lazy.force global_env
