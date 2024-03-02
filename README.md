@@ -12,3 +12,5 @@ $ opam build
 ```
 
 I hope these plugins help beginners have a more straighforward experience with OCaml.
+
+<img src="https://github.com/kit-ty-kate/opam-build/raw/main/demo/demo.gif"/>
