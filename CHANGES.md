@@ -1,3 +1,9 @@
+v0.2.5 (07/04/2025)
+-------------------
+
+- Print command arguments with quotes when they contain '#'
+- Upgrade to opam 2.3
+
 v0.2.4 (02/03/2024)
 -------------------
 
