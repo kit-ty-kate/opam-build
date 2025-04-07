@@ -77,8 +77,8 @@ let check_dependencies ~pkgs ~switch_kind st =
     in
     (st, pkgs_to_atoms pkgs)
   in
-  let missing = OpamClient.check_installed ~build:true ~post:true st atoms in
-  if not (OpamPackage.Map.is_empty missing) then
+  let missing = OpamClient.check_installed ~build:true ~post:true ~recursive:true st atoms in
+  if not (OpamPackage.Name.Map.is_empty missing) then
     OpamClient.install st ~deps_only:true atoms
   else
     st
