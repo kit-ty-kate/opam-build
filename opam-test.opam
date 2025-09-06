@@ -1,5 +1,5 @@
 opam-version: "2.0"
-version: "0.2.5"
+version: "0.2.6"
 synopsis: "An opam plugin to test projects"
 maintainer: "Kate <kit-ty-kate@exn.st>"
 authors: "Kate <kit-ty-kate@exn.st>"
