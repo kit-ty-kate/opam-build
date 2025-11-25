@@ -1,3 +1,11 @@
+v0.3.0 (25/11/2025)
+-------------------
+
+- Bump to opam 2.5
+- Allow to use cmdliner 2.0 which removed the ability to specify command and option name by their prefixes.
+  This means that options such as `--write` as a shorthand for `--write-config-only` will only be valid
+  if the opam-build has been compiled with cmdliner < 2.0 or if `CMDLINER_LEGACY_PREFIXES=true` is set in the environment.
+
 v0.2.6 (06/09/2025)
 -------------------
 
