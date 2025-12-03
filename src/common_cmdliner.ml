@@ -39,8 +39,12 @@ let write_config_only =
   in
   Arg.value & Arg.flag & Arg.info ["write-config-only"] ~doc
 
+let packages =
+  let doc = "" in
+  Arg.value & Arg.pos_all Arg.string [] & Arg.info [] ~doc
+
 let args f =
-  let f switch_kind write_config_only =
+  let f switch_kind write_config_only packages =
     if write_config_only then begin
       Stdlib.Option.iter Configfile.set_switch_kind switch_kind;
       `Ok 0
@@ -66,7 +70,13 @@ let args f =
                   None
       in
       match switch_kind with
-      | Some switch_kind -> f switch_kind
+      | Some switch_kind ->
+          let packages =
+            List.fold_left
+              (fun acc x -> OpamPackage.Name.Set.add (OpamPackage.Name.of_string x) acc)
+              OpamPackage.Name.Set.empty packages
+          in
+          f switch_kind packages
       | None -> `Ok 1
   in
-  Term.const f $ switch_kind $ write_config_only
+  Term.const f $ switch_kind $ write_config_only $ packages

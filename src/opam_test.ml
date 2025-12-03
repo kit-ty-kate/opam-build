@@ -8,8 +8,8 @@ module Manpage = Cmdliner.Manpage
 let ( $ ) = Cmdliner.Term.( $ )
 let ( & ) = Cmdliner.Arg.( & )
 
-let main switch_kind =
-  Build_test_common.build ~switch_kind ~with_test:true;
+let main switch_kind packages =
+  Build_test_common.build ~switch_kind ~with_test:true packages;
   `Ok 0
 
 let cmd =

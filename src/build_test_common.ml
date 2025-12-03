@@ -6,16 +6,20 @@ exception No_switch
 
 let dev_version = OpamPackage.Version.of_string "dev"
 
-let add_pkg map OpamStateTypes.{pin_name = name; pin = {pin_file; _}} =
-  let pkg = OpamPackage.create name dev_version in
-  let opam = OpamFile.OPAM.safe_read pin_file in
-  let opam = OpamFile.OPAM.with_name name opam in
-  let opam = OpamFile.OPAM.with_version dev_version opam in
-  OpamPackage.Map.add pkg opam map
+let add_pkg selection map OpamStateTypes.{pin_name = name; pin = {pin_file; _}} =
+  if OpamPackage.Name.Set.is_empty selection ||
+     OpamPackage.Name.Set.mem name selection then
+    let pkg = OpamPackage.create name dev_version in
+    let opam = OpamFile.OPAM.safe_read pin_file in
+    let opam = OpamFile.OPAM.with_name name opam in
+    let opam = OpamFile.OPAM.with_version dev_version opam in
+    OpamPackage.Map.add pkg opam map
+  else
+    map
 
-let get_pkgs () =
+let get_pkgs selection =
   List.fold_left
-    add_pkg
+    (add_pkg selection)
     OpamPackage.Map.empty
     (OpamAuxCommands.opams_of_dir (OpamFilename.cwd ()))
 
@@ -161,12 +165,12 @@ let rec iter_job = function
       | _pid, (WSIGNALED _ | WSTOPPED _) ->
           print "###" (OpamConsole.colorise `red "command stopped unexpectedly")
 
-let build ~switch_kind ~with_test =
+let build ~switch_kind ~with_test selection =
   try
     (* TODO: Disable sandbox by default? Make it configurable? *)
     OpamClientConfig.opam_init ~build_test:with_test ();
     OpamGlobalState.with_ `Lock_write @@ fun gt ->
-    let pkgs = get_pkgs () in
+    let pkgs = get_pkgs selection in
     check_switch ~pkgs ~switch_kind gt @@ fun st ->
     let st = check_dependencies ~pkgs ~switch_kind st in
     let st = if with_test then add_post_to_variables st else st in
