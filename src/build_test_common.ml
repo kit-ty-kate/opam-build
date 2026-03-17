@@ -87,6 +87,15 @@ let check_dependencies ~pkgs ~switch_kind st =
   else
     st
 
+let add_dev_to_variables st =
+  let switch_config = st.OpamStateTypes.switch_config in
+  let switch_config =
+    let variables = switch_config.OpamFile.Switch_config.variables in
+    let variables = (OpamVariable.of_string "dev", OpamVariable.B true) :: variables in
+    {switch_config with OpamFile.Switch_config.variables}
+  in
+  {st with OpamStateTypes.switch_config}
+
 let add_post_to_variables st =
   let switch_config = st.OpamStateTypes.switch_config in
   let switch_config =
@@ -172,6 +181,7 @@ let build ~switch_kind ~with_test selection =
     OpamGlobalState.with_ `Lock_write @@ fun gt ->
     let pkgs = get_pkgs selection in
     check_switch ~pkgs ~switch_kind gt @@ fun st ->
+    let st = add_dev_to_variables st in
     let st = check_dependencies ~pkgs ~switch_kind st in
     let st = if with_test then add_post_to_variables st else st in
     print "#" ("Using "^OpamConsole.colorise `bold (switch_kind_to_string switch_kind)^" switch");
