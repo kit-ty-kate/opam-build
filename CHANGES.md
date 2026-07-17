@@ -1,3 +1,9 @@
+v0.3.1 (17/07/2026)
+-------------------
+
+- Bump to opam 2.6
+- Allow to select a subset of packages to build
+
 v0.3.0 (25/11/2025)
 -------------------
 
